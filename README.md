@@ -1,9 +1,11 @@
 ---
 
-# 📊 Sentiment Analyzer Case Study
+# 📊 Sentiment Analyzer WebApp
 
 A **Machine Learning** and **Natural Language Processing (NLP)** project for sentiment analysis of movie reviews.  
-This case study demonstrates building, training, and deploying sentiment analysis models using the **IMDB Movie Review Dataset (50K reviews)**.
+This Project demonstrates building, training, and deploying sentiment analysis models using the **IMDB Movie Review Dataset (50K reviews)**.
+
+
 
 ---
 
