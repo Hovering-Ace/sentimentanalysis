@@ -1,0 +1,397 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sentiment Analysis for Reviews</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-image: url(https://assets.nflxext.com/ffe/siteui/vlv3/6d631aa6-567d-46ef-a644-b5b00e4334d2/web/IN-en-20251215-TRIFECTA-perspective_f1cab02a-e42b-4913-a7d9-c5fe0f94f68d_large.jpg);
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+      min-height: 100vh;
+      padding: 40px 20px;
+      position: relative;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.65);
+      z-index: 0;
+    }
+
+    .wrapper {
+      max-width: 900px;
+      margin: 0 auto;
+      position: relative;
+      z-index: 1;
+    }
+
+    .container {
+      background: linear-gradient(135deg, rgba(0, 0, 0, 0.92));
+      opacity: .8;
+
+      padding: 40px;
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      border: 1px solid #e0e0e0bb;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 35px;
+    }
+
+    h2 {
+      color: #ffffff;
+      font-size: 2.2em;
+      margin-bottom: 10px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+    }
+
+    .subtitle {
+      color: #ffffff;
+      font-size: 1.05em;
+      margin-top: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .feature-badges {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      flex-wrap: wrap;
+      margin-top: 20px;
+    }
+
+    .badge {
+      background: red;
+      color: white;
+      padding: 8px 18px;
+      border-radius: 20px;
+      font-size: 0.85em;
+      font-weight: 600;
+      box-shadow: 0 4px 15px rgba(15, 15, 16, 0.3);
+    }
+
+    .info-section {
+      background: linear-gradient(135deg, rgb(39, 37, 37));
+      padding: 20px;
+      border-radius: 12px;
+      margin-bottom: 25px;
+      margin-top: 25px;
+      border-left: 4px solid #ff0000;
+    }
+
+    .info-section h3 {
+      color: #ffffff;
+      font-size: 1.1em;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .info-section p {
+      color: #ffffff;
+      line-height: 1.6;
+      margin-top: 1rem;
+      font-size: 0.95em;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      color: #ffffff;
+      font-weight: 600;
+      margin-bottom: 10px;
+      font-size: 1.05em;
+    }
+
+    textarea {
+      width: 100%;
+      height: 160px;
+      padding: 15px;
+      border: 2px solid #e0e0e0bb;
+      border-radius: 12px;
+      font-size: 16px;
+      resize: vertical;
+      font-family: inherit;
+      color: white;
+      transition: all 0.3s ease;
+      background: rgb(39, 37, 37);
+    }
+
+    textarea:focus {
+      outline: none;
+      border-color: #a3a3a3;
+      box-shadow: 0 0 0 4px rgba(70, 70, 72, 0.1);
+    }
+
+    .char-counter {
+      text-align: right;
+      color: #ffffff;
+      font-size: 0.9em;
+      margin-top: 5px;
+    }
+
+    button {
+      background: red;
+      color: white;
+      padding: 16px 40px;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      font-size: 17px;
+      font-weight: 600;
+      width: 100%;
+      transition: all 0.3s ease;
+      box-shadow: 0 8px 25px rgba(24, 24, 24, 0.4);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 35px rgba(220, 2, 2, 0.5);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    .result-container {
+      animation: fadeIn 0.5s ease;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .result {
+      padding: 25px;
+      border-radius: 15px;
+      font-weight: 600;
+      font-size: 1.3em;
+      text-align: center;
+      margin-bottom: 25px;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    }
+
+    .positive {
+      background: linear-gradient(135deg, #d4edda 0%, #b8dfc7 100%);
+      color: #155724;
+      border: 2px solid #28a745;
+    }
+
+    .negative {
+      background: linear-gradient(135deg, #f8d7da 0%, #f5c2c7 100%);
+      color: #721c24;
+      border: 2px solid #dc3545;
+    }
+
+    .sentiment-icon {
+      font-size: 2.5em;
+      margin-bottom: 10px;
+    }
+
+    .confidence {
+      font-size: 0.8em;
+      margin-top: 12px;
+      opacity: 0.9;
+    }
+
+    .confidence-bar {
+      width: 100%;
+      height: 15px;
+      background: black;
+      border-radius: 10px;
+      margin-top: 10px;
+      overflow: hidden;
+    }
+
+    .confidence-fill {
+      height: 100%;
+      background: red;
+      border-radius: 10px;
+      transition: width 0.8s ease;
+    }
+
+    .original-text {
+      background: rgb(39, 37, 37);
+      padding: 20px;
+      border-radius: 12px;
+      margin-top: 20px;
+      border-left: 4px solid #ff0000;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    }
+
+    .original-text strong {
+      color: #ffffff;
+      font-size: 1.05em;
+      display: block;
+      margin-bottom: 10px;
+    }
+
+    .original-text p {
+      color: #ffffff;
+      line-height: 1.7;
+      font-size: 1em;
+    }
+
+    .error {
+      background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+      color: white;
+      padding: 15px 20px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      font-weight: 500;
+      box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        padding: 25px;
+      }
+
+      h1 {
+        font-size: 1.8em;
+      }
+
+      .feature-badges {
+        gap: 10px;
+      }
+
+      .badge {
+        font-size: 0.8em;
+        padding: 6px 14px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrapper">
+    <div class="container">
+      <div class="header">
+        <h2>🎬OpinionNet-Deep Learning Sentiment Engine </h2>
+        <p class="subtitle">
+          <span>🤖</span> AI-Powered Review Analysis
+        </p>
+        <div class="feature-badges">
+          <span class="badge">Instant Results</span>
+          <span class="badge">High Accuracy</span>
+          <span class="badge">Free to Use</span>
+        </div>
+      </div>
+
+      {% if error %}
+      <div class="error">⚠️ {{ error }}</div>
+      {% endif %}
+
+      {% if prediction is defined %}
+      <!-- Result Section -->
+      <div class="result-container">
+        <div class="result {{ 'positive' if prediction == 1 else 'negative' }}">
+          <div class="sentiment-icon">{{ "😊" if prediction == 1 else "😞" }}</div>
+          <div>Sentiment: {{ "Positive" if prediction == 1 else "Negative" }}</div>
+          <div class="confidence">Confidence Score: {{ "%.1f"|format(confidence * 100) }}%</div>
+          <div class="confidence-bar">
+            <div class="confidence-fill" style="width: {{ (confidence * 100)|round(1) }}%"></div>
+          </div>
+        </div>
+
+        <div class="original-text">
+          <strong>📝 Your Review:</strong>
+          <p>{{ text }}</p>
+        </div>
+
+        <div class="info-section">
+          <h3>💡 Analysis Insight</h3>
+          <p>Our AI model analyzed your review's language patterns, word choices, and overall tone to determine the
+            sentiment.
+            {% if prediction == 1 %}
+            The positive sentiment suggests this review expresses satisfaction and favorable opinions.
+            {% else %}
+            The negative sentiment indicates this review expresses dissatisfaction or critical opinions.
+            {% endif %}
+          </p>
+        </div>
+
+        <button onclick="window.location.href='/'">🔄 Analyze Another Review</button>
+      </div>
+      {% else %}
+      <!-- Form Section -->
+
+      <form method="post">
+        <div class="form-group">
+          <label for="review">✍️ Enter Your Movie Review:</label>
+          <textarea name="review" id="review"
+            placeholder="Example: 'The cinematography was breathtaking, and the storyline kept me engaged throughout. A must-watch masterpiece!'"
+            required oninput="updateCharCounter(this)"></textarea>
+          <div class="char-counter" id="charCounter">0 characters</div>
+        </div>
+        <button type="submit">🚀 Analyze Sentiment</button>
+      </form>
+
+      <div class="info-section">
+        <h3>🎯 How It Works</h3>
+        <p>
+          Our <strong>Sentiment Analyzer WebApp</strong> uses <strong>Machine Learning</strong> and
+          <strong>NLP</strong> to classify movie reviews as <em>positive</em> or <em>negative</em>.
+          Just enter your review, and the model instantly predicts sentiment with a confidence score.
+        </p>
+        <p>
+          Powered by an end‑to‑end <strong>NLP pipeline</strong> (tokenization, stopword removal, stemming,
+          lemmatization)
+          and <strong>TF‑IDF</strong> features, trained models like <em>Logistic Regression</em>, <em>LSTM</em>, and
+          <em>BERT</em>
+          deliver ~89% accuracy on the <em>IMDB 50K dataset</em>. Special <strong>negation handling</strong> ensures
+          phrases
+          like “not good” are correctly classified.
+        </p>
+      </div>
+
+      {% endif %}
+    </div>
+  </div>
+
+  <script>
+    function updateCharCounter(textarea) {
+      const counter = document.getElementById('charCounter');
+      const length = textarea.value.length;
+      counter.textContent = length + ' character' + (length !== 1 ? 's' : '');
+    }
+  </script>
+</body>
+
+</html>
